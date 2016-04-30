@@ -18,7 +18,7 @@ function getCURLOutput($url, $withScript){
 }
 
 function splitAndGetLongest($string, $split){
-	if(strpos($string, $split) == false)
+	if(strpos($string, $split) === false)
 		return $string;
 	$array = explode($split, $string);
 	$mapping = array_combine($array, array_map('strlen', $array));

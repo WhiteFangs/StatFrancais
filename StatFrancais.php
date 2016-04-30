@@ -78,7 +78,7 @@ function tweet(){
 					$tempTitle = splitAndGetLongest($tempTitle, ' (');
 					$tempTitle = splitAndGetLongest($tempTitle, '. ');
 					$tempTitle = trim($tempTitle);
-					if(strpos(mb_strtolower($tempTitle), "français") != false){ // test correct trim of title
+					if(strpos(mb_strtolower($tempTitle), "français") !== false){ // test correct trim of title
 						$title = $tempTitle;
 					}else{
 						array_splice($urls, $urlIndex, 1);
