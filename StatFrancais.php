@@ -17,13 +17,15 @@ $googleCSEId = 'YOUR_CUSTOM_SEARCH_ENGINE_ID';
 function getRandomPageNumber($query){
 	global $googleAPIKey, $googleCSEId;
 	$googleQueryUrl = 'https://www.googleapis.com/customsearch/v1?key='. $googleAPIKey .'&cx='. $googleCSEId .'&q=allintitle:'.$query.'&filter=0';
-	$googleSearch = file_get_contents($googleQueryUrl);
+	$googleSearch = getCURLOutput($googleQueryUrl, false);
 	$json = json_decode($googleSearch);
+	if($json->error)
+		exit();
 	$totalResults = $json->searchInformation->totalResults;
 	if($totalResults == 0)
-		return -1;
-	$pages = ($totalResults % 10 == 0) ? intval($totalResults / 10) - 1 : intval($totalResults / 10);
-	return rand(0, $pages);
+		return 0;
+	$page = ($totalResults > 10) ? min(rand(1, $totalResults - 10), 100) : 1; // Google usually over estimates available results, thus the min with 100
+	return $page;
 }
 
 function getNewQuery(){
@@ -47,14 +49,16 @@ function getNewQuery(){
 }
 
 function tweet(){
-	global $googleAPIKey, $googleCSEId;
+	global $googleAPIKey, $googleCSEId, $APIsettings;
 	$urls = array();
 	$query = getNewQuery();
 	$pageNumber = getRandomPageNumber($query);
-	if($pageNumber > -1){
+	if($pageNumber > 0){
 		$googleQueryUrl = 'https://www.googleapis.com/customsearch/v1?key='. $googleAPIKey .'&cx='. $googleCSEId .'&start='.$pageNumber.'&q=allintitle:'.$query.'&filter=0';
-		$googleSearch = file_get_contents($googleQueryUrl);
+		$googleSearch = getCURLOutput($googleQueryUrl, false);
 		$json = json_decode($googleSearch);
+		if($json->error)
+			exit();
 		if(is_array($json->items)){
 			foreach ($json->items as $result){		
 				array_push($urls, $result->link);
@@ -62,7 +66,7 @@ function tweet(){
 			do{
 				$urlIndex = array_rand($urls);
 				$randomUrl = $urls[$urlIndex];
-				$html = getCURLOutput($randomUrl);
+				$html = getCURLOutput($randomUrl, false);
 				$doc = new DOMDocument();
 				@$doc->loadHTML($html);
 				$nodes = $doc->getElementsByTagName('title');
@@ -74,7 +78,7 @@ function tweet(){
 					$tempTitle = splitAndGetLongest($tempTitle, ' (');
 					$tempTitle = splitAndGetLongest($tempTitle, '. ');
 					$tempTitle = trim($tempTitle);
-					if(strpos(strtolower($tempTitle), "français") != false){ // test correct trim of title
+					if(strpos(mb_strtolower($tempTitle), "français") != false){ // test correct trim of title
 						$title = $tempTitle;
 					}else{
 						array_splice($urls, $urlIndex, 1);
