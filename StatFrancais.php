@@ -1,18 +1,20 @@
 <?php
 
-include('./BotHelpers.php');
-require_once('./TwitterAPIExchange.php');
+include('twitterCredentials.php');
+include('googleCredentials.php');
+include('BotHelpers.php');
+require_once('TwitterAPIExchange.php');
 
 /** Set access tokens here - see: https://apps.twitter.com/ **/
 $APIsettings = array(
-    'oauth_access_token' => "YOUR_ACCESS_TOKEN",
-    'oauth_access_token_secret' => "YOUR_ACCESS_TOKEN_SECRET",
-    'consumer_key' => "YOUR_CONSUMER_KEY",
-    'consumer_secret' => "YOUR_CONSUMER_KEY_SECRET"
+    'oauth_access_token' => $oauthToken,
+    'oauth_access_token_secret' => $oauthTokenSecret,
+    'consumer_key' => $consumerKey,
+    'consumer_secret' => $consumerSecret
 );
 
-$googleAPIKey = 'YOUR_GOOGLE_API_KEY';
-$googleCSEId = 'YOUR_CUSTOM_SEARCH_ENGINE_ID';
+$googleAPIKey = $gApiKey;
+$googleCSEId = $gCSEId;
 
 function getRandomPageNumber($query){
 	global $googleAPIKey, $googleCSEId;
@@ -106,6 +108,7 @@ function tweet(){
 		tweet();
 	}
 }
+
 
 tweet();
 
