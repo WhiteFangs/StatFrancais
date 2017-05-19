@@ -16,6 +16,15 @@ $APIsettings = array(
 $googleAPIKey = $gApiKey;
 $googleCSEId = $gCSEId;
 
+$twitter = new TwitterAPIExchange($APIsettings);
+// Get Twitter config
+$twitterConfigURL = 'https://api.twitter.com/1.1/help/configuration.json';
+$requestMethod = 'GET';
+$twitterConfig = $twitter->setGetfield('')
+    ->buildOauth($twitterConfigURL, $requestMethod)
+    ->performRequest();
+$twitterConfig = json_decode($twitterConfig);
+
 function getRandomPageNumber($query){
 	global $googleAPIKey, $googleCSEId;
 	$googleQueryUrl = 'https://www.googleapis.com/customsearch/v1?key='. $googleAPIKey .'&cx='. $googleCSEId .'&q=allintitle:'.$query.'&filter=0';
@@ -51,7 +60,7 @@ function getNewQuery(){
 }
 
 function tweet(){
-	global $googleAPIKey, $googleCSEId, $APIsettings;
+	global $googleAPIKey, $googleCSEId, $twitter, $twitterConfig;
 	$urls = array();
 	$query = getNewQuery();
 	$pageNumber = getRandomPageNumber($query);
@@ -90,12 +99,17 @@ function tweet(){
 				}
 			}while(!isset($title) && count($urls) > 0);
 			if(isset($title)){
+				$maxLength = 140 - ($twitterConfig->short_url_length + 1);
+				if($title > $maxLength)
+      				$title = substr($title, 0, $maxLength - 3) . "...";
+      			$title .= " " . $randomUrl;
 				// Post the tweet
 				$postfields = array('status' =>  $title);
 				$url = "https://api.twitter.com/1.1/statuses/update.json";
 				$requestMethod = "POST";
 				$twitter = new TwitterAPIExchange($APIsettings);
-				echo $twitter->buildOauth($url, $requestMethod)
+				echo $twitter->resetFields()
+							->buildOauth($url, $requestMethod)
 							  ->setPostfields($postfields)
 							  ->performRequest();
 			}else{
