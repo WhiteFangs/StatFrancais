@@ -22,7 +22,8 @@ function splitAndGetLongest($string, $split){
 		return $string;
 	$array = explode($split, $string);
 	$mapping = array_combine($array, array_map('strlen', $array));
-	return array_shift(array_keys($mapping, max($mapping)));
+  $keys = array_keys($mapping, max($mapping));
+	return array_shift($keys);
 }
 
  ?>
